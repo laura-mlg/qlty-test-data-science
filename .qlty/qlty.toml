@@ -1,0 +1,75 @@
+# This configuration was generated with the setup-qlty-toml skill.
+# For reference: https://docs.qlty.sh/qlty-toml
+config_version = "0"
+
+exclude_patterns = [
+  "**/.git/**",
+  "**/node_modules/**",
+  "**/__pycache__/**",
+  "**/.mypy_cache/**",
+  "**/.ruff_cache/**",
+  "**/dist/**",
+  "**/build/**",
+  "**/*.egg-info/**",
+]
+
+test_patterns = [
+  "**/test/**",
+  "**/tests/**",
+  "**/*_test.py",
+  "**/test_*.py",
+  "**/conftest.py",
+]
+
+[smells]
+mode = "comment"
+
+# ML pipeline functions have many parameters by design — raise the threshold
+# to avoid false positives on train_model (8 params), preprocess_features (8 params),
+# and evaluate_model (6 params).
+[language.python.smells]
+function_parameters.threshold = 8
+# ML pipelines have complex branching logic; raise complexity threshold accordingly.
+function_complexity.threshold = 20
+
+# The three summarize_* functions are intentionally structurally identical
+# (train/test/val stats pattern). Disable identical_code to suppress false positives.
+[smells.identical_code]
+enabled = false
+
+# Required — points to the built-in Qlty plugin registry.
+[[source]]
+name = "default"
+default = true
+
+# --- Language linters ---
+
+[[plugin]]
+name = "ruff"
+mode = "comment"
+config_files = ["pyproject.toml"]
+
+[[plugin]]
+name = "mypy"
+mode = "comment"
+config_files = ["pyproject.toml"]
+
+# --- Security scanners ---
+
+[[plugin]]
+name = "trufflehog"
+mode = "block"
+
+[[plugin]]
+name = "osv-scanner"
+mode = "block"
+
+# --- CI / config quality ---
+
+[[plugin]]
+name = "actionlint"
+mode = "comment"
+
+[[plugin]]
+name = "yamllint"
+mode = "comment"
